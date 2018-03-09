@@ -372,7 +372,7 @@ static void * RBQArrayFetchRequestContext = &RBQArrayFetchRequestContext;
         _cacheName = name;
         _fetchRequest = fetchRequest;
         _sectionNameKeyPath = sectionNameKeyPath;
-        
+		
 #ifdef DEBUG
 		_logging = true;
 #endif
