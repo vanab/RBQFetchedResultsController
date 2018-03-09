@@ -372,9 +372,9 @@ static void * RBQArrayFetchRequestContext = &RBQArrayFetchRequestContext;
         _cacheName = name;
         _fetchRequest = fetchRequest;
         _sectionNameKeyPath = sectionNameKeyPath;
-		
+        
 #ifdef DEBUG
-		_logging = true;
+        _logging = true;
 #endif
     }
     
@@ -817,7 +817,14 @@ static void * RBQArrayFetchRequestContext = &RBQArrayFetchRequestContext;
 
             [self runOnMainThread:^(){
                 [weakSelf.delegate controllerWillChangeContent:weakSelf];
+                if (useSem) {
+                    dispatch_semaphore_signal(sem);
+                }
             }];
+            
+            if (useSem) {
+                dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+            }
         }
 
         [state.cacheRealm beginWriteTransaction];
@@ -827,14 +834,14 @@ static void * RBQArrayFetchRequestContext = &RBQArrayFetchRequestContext;
                                                                      sectionChanges:sectionChanges
                                                                               state:state];
 
-		if(self.logging) {
-			NSLog(@"%lu Derived Inserted Sections",(unsigned long)derivedChanges.insertedSectionChanges.count);
-			NSLog(@"%lu Derived Deleted Sections",(unsigned long)derivedChanges.deletedSectionChanges.count);
-			NSLog(@"%lu Derived Added Objects",(unsigned long)derivedChanges.insertedObjectChanges.count);
-			NSLog(@"%lu Derived Deleted Objects",(unsigned long)derivedChanges.deletedObjectChanges.count);
-			NSLog(@"%lu Derived Moved Objects",(unsigned long)derivedChanges.movedObjectChanges.count);
-		}
-		
+        if(self.logging) {
+            NSLog(@"%lu Derived Inserted Sections",(unsigned long)derivedChanges.insertedSectionChanges.count);
+            NSLog(@"%lu Derived Deleted Sections",(unsigned long)derivedChanges.deletedSectionChanges.count);
+            NSLog(@"%lu Derived Added Objects",(unsigned long)derivedChanges.insertedObjectChanges.count);
+            NSLog(@"%lu Derived Deleted Objects",(unsigned long)derivedChanges.deletedObjectChanges.count);
+            NSLog(@"%lu Derived Moved Objects",(unsigned long)derivedChanges.movedObjectChanges.count);
+        }
+        
         // Apply Derived Changes To Cache
         [self applyDerivedChangesToCache:derivedChanges
                                    state:state];
