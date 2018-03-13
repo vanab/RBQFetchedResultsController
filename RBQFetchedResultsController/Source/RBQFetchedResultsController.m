@@ -817,7 +817,18 @@ static void * RBQArrayFetchRequestContext = &RBQArrayFetchRequestContext;
 
             [self runOnMainThread:^(){
                 [weakSelf.delegate controllerWillChangeContent:weakSelf];
+                if (useSem) {
+                    dispatch_semaphore_signal(sem);
+                }
             }];
+			
+			// Wait for notifying that controller has started change its content.
+			// NSInternalInconsistencyException was throws when beginUpdates was called after changes on observed fetchedObjects.
+			// See https://freshbooks.atlassian.net/browse/HEL-12
+			// Added by Smetankin Dmitry
+            if (useSem) {
+                dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+            }
         }
 
         [state.cacheRealm beginWriteTransaction];
